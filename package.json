@@ -1,0 +1,14 @@
+{
+  "name": "react-canvas-analyser-web-boilerplate",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"yarn client:dev\" \"yarn serve:dev\"",
+    "client:dev": "yarn --cwd ./client dev",
+    "serve:dev": "yarn --cwd ./serve dev"
+  },
+  "dependencies": {
+    "concurrently": "^5.1.0"
+  }
+}

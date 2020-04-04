@@ -1,0 +1,13 @@
+/dist
+/build
+/node_modules
+/junk
+/release-builds
+
+/logs
+*.log
+
+.env
+
+yarn.lock
+*yarn-error.log
