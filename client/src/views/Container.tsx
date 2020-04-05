@@ -18,44 +18,41 @@ export function Container({ ready, handler, frequencyC, sinewaveC }: Props) {
     const [temp, setTemp] = useState<number | null>(null); // temp value for dragging seek bar
 
     useEffect(() => {
-        const onChangeSong = () => {
-            setPosition(handler.getPosition());
-        };
-
-        window.addEventListener('changeposition', onChangeSong);
-        return () => window.removeEventListener('changeposition', onChangeSong);
-    }, [position]);
-
-    useEffect(() => {
-        const onSongEnd = () => {
-            handler.getStatus() === 'PLAY' && handler.nextsong();
-            setDuration(handler.getDuration());
-        };
-
-        window.addEventListener('onsongend', onSongEnd);
-        return () => window.removeEventListener('onsongend', onSongEnd);
-    }, []);
+        if (!ready) {
+            return;
+        }
+        setDuration(handler.getDuration());
+        setVolume(handler.getVolume() * 100);
+    }, [ready]);
 
     useEffect(() => {
         const onCleanCartridge = () => {
             setDuration(0);
         };
 
+        const onSongEnd = () => {
+            handler.getStatus() === 'PLAY' && handler.nextsong();
+            setDuration(handler.getDuration());
+        };
+        const onChangeSong = () => {
+            setPosition(handler.getPosition());
+        };
+
+        window.addEventListener('changeposition', onChangeSong);
+        window.addEventListener('onsongend', onSongEnd);
         window.addEventListener('cleancartridge', onCleanCartridge);
-        return () => window.removeEventListener('cleancartridge', onCleanCartridge);
+
+        return () => {
+            window.removeEventListener('cleancartridge', onCleanCartridge);
+            window.removeEventListener('onsongend', onSongEnd);
+            window.removeEventListener('changeposition', onChangeSong);
+        };
     }, []);
 
-    useEffect(() => {
-        if (!ready) {
-            return;
-        }
-
-        setDuration(handler.getDuration());
-        setVolume(handler.getVolume() * 100);
-    }, [ready]);
-
-    const play = (): void => {
+    const play = (pointer?: number): void => {
         handler.setVolume(volume / 100);
+        pointer && handler.jump(pointer);
+
         handler.play();
     };
 

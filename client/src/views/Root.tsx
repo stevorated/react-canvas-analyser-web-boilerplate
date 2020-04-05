@@ -6,7 +6,16 @@ import { Container } from './Container';
 // should be created on upper level of app (once)
 const handler = new AudioHandler();
 
-const urls = ['http://localhost:3000/public/song.mp3', 'http://localhost:3000/public/song.mp3'];
+const urls = [
+    'http://localhost:3000/public/Is It Always Binary.mp3',
+    'http://localhost:3000/public/2 Pieces Master.mp3',
+    'http://localhost:3000/public/Actually Not Master.mp3',
+    'http://localhost:3000/public/Fragments Master.mp3',
+    'http://localhost:3000/public/How Come Master.mp3',
+    'http://localhost:3000/public/Pick Me Up Master.mp3',
+    'http://localhost:3000/public/Son of a Gun Master.mp3',
+    'http://localhost:3000/public/War Master.mp3',
+];
 
 export function Root() {
     const [ready, setReady] = useState(false);
@@ -15,11 +24,13 @@ export function Root() {
 
     // canvas draw styles
     const styles = {
-        fillStyle: 'rgba(200, 200, 200)',
-        strokeStyle: 'rgba(0, 0,255)',
+        fillStyleSinewave: 'rgba(200, 200, 200)',
+        fillStyleFrequency: 'rgba(200, 200, 200)',
+        strokeStyleSinewave: 'rgba(0, 0, 0)',
+        // strokeStyleFrequency: 'rgba(0, 0,255)',
         lineWidth: 1.2,
         level: 100,
-        fftSize: 4096, // delization of bars from 1024 to 32768
+        fftSize: 256, // delization of bars from 1024 to 32768
     };
 
     // componentDidMount like..

@@ -2,8 +2,10 @@ import axios from 'axios';
 
 type Styles = {
     fftSize: number;
-    fillStyle: string | CanvasGradient | CanvasPattern;
-    strokeStyle: string | CanvasGradient | CanvasPattern;
+    fillStyleSinewave: string | CanvasGradient | CanvasPattern;
+    fillStyleFrequency: string | CanvasGradient | CanvasPattern;
+    strokeStyleSinewave: string | CanvasGradient | CanvasPattern;
+    strokeStyleFrequency?: string | CanvasGradient | CanvasPattern;
     lineWidth: number;
     level: number;
 };
@@ -32,7 +34,6 @@ export class AudioHandler {
     private sinewaveC: HTMLCanvasElement | null | undefined = null;
     private frequencyC: HTMLCanvasElement | null | undefined = null;
     private styles: Styles | null = null;
-
     private source: AudioBufferSourceNode | null = null;
     private context: AudioContext | null = null;
     private analyser: AnalyserNode | null = null;
@@ -40,7 +41,6 @@ export class AudioHandler {
     private sinewaveDataArray: Uint8Array | null = null;
     private sinewaveСanvasCtx: CanvasRenderingContext2D | null = null;
     private frequencyСanvasCtx: CanvasRenderingContext2D | null = null;
-
     private gainNode: GainNode | null = null;
     private buffers: (AudioBuffer | undefined)[] = [];
 
@@ -165,7 +165,7 @@ export class AudioHandler {
         this.gainNode.gain.value = this.volume;
     };
 
-    play = (resumeTime = this.position ? this.position || 0 : 0) => {
+    play = () => {
         if (
             this.status === 'PLAY' ||
             this.status === 'INIT' ||
@@ -177,6 +177,7 @@ export class AudioHandler {
             return;
         }
 
+        const resumeTime = this.position ? this.position || 0 : 0;
         // don't interupt
         this.status = 'BUSY';
 
@@ -279,8 +280,15 @@ export class AudioHandler {
         this.updateSampleRate();
 
         setTimeout(() => {
-            playing && this.play(0);
+            playing && this.play();
         }, 20);
+    };
+
+    public jump = (pointer: number) => {
+        this.pointer = pointer;
+        this.updateDuration();
+        this.updateSampleRate();
+        this.dispatchEvent('onsongend');
     };
 
     nextsong = () => {
@@ -313,15 +321,15 @@ export class AudioHandler {
         this.analyser.getByteTimeDomainData(this.sinewaveDataArray);
         requestAnimationFrame(this.drawSinewave);
 
-        this.sinewaveСanvasCtx.fillStyle = this.styles.fillStyle;
+        this.sinewaveСanvasCtx.fillStyle = this.styles.fillStyleSinewave;
 
         this.sinewaveСanvasCtx.fillRect(0, 0, this.sinewaveC.width, this.sinewaveC.height);
         this.sinewaveСanvasCtx.lineWidth = this.styles.lineWidth;
 
-        this.sinewaveСanvasCtx.strokeStyle = this.styles.strokeStyle;
+        this.sinewaveСanvasCtx.strokeStyle = this.styles.strokeStyleSinewave;
         this.sinewaveСanvasCtx.beginPath();
 
-        const sliceWidth = (this.sinewaveC.width * 1.0) / this.analyser.fftSize;
+        const sliceWidth = this.sinewaveC.width / this.analyser.fftSize;
         let x = 0;
 
         for (let i = 0; i < this.analyser.fftSize; i++) {
@@ -350,24 +358,37 @@ export class AudioHandler {
         ) {
             return;
         }
-
+        const HEIGHT = this.frequencyC.height;
+        const WIDTH = this.frequencyC.width;
+        const ratio = 0.55;
         this.analyser.getByteFrequencyData(this.frequencyDataArray);
 
         requestAnimationFrame(this.drawFrequency);
 
-        this.frequencyСanvasCtx.fillStyle = this.styles.fillStyle;
-        this.frequencyСanvasCtx?.fillRect(0, 0, this.frequencyC.width, this.frequencyC.height);
         this.frequencyСanvasCtx?.beginPath();
+        this.frequencyСanvasCtx.fillStyle = this.styles.fillStyleFrequency;
 
-        const barWidth = (this.frequencyC.width / this.analyser.frequencyBinCount) * 2.5;
+        const barWidth = this.frequencyC.width / ratio / this.analyser.frequencyBinCount;
+
         let barHeight;
         let x = 0;
 
-        for (let i = 0; i < this.analyser.frequencyBinCount; i++) {
-            barHeight = this.frequencyDataArray[i];
+        // this.frequencyСanvasCtx.fillStyle = '#000';
+        this.frequencyСanvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
-            this.frequencyСanvasCtx.fillStyle = this.styles.strokeStyle;
-            this.frequencyСanvasCtx.fillRect(x, this.frequencyC.height - barHeight / 2, barWidth, barHeight / 2);
+        const bufferLength = this.analyser.frequencyBinCount;
+
+        for (var i = 0; i < bufferLength; i++) {
+            barHeight = this.frequencyDataArray[i] * ratio;
+
+            var r = barHeight + 25 * (i / bufferLength);
+            var g = 250 * (i / bufferLength);
+            // g = 50;
+            var b = 50;
+
+            this.frequencyСanvasCtx.fillStyle =
+                this.styles.strokeStyleFrequency || 'rgb(' + r + ',' + g + ',' + b + ')';
+            this.frequencyСanvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
             x += barWidth + 1;
         }
