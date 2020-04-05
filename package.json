@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"yarn client:dev\" \"yarn serve:dev\"",
     "client:dev": "yarn --cwd ./client dev",
-    "serve:dev": "yarn --cwd ./serve dev"
+    "serve:dev": "yarn --cwd ./server dev"
   },
   "dependencies": {
     "concurrently": "^5.1.0"
